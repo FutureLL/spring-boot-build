@@ -19,10 +19,16 @@ package org.springframework.boot.tests.hibernate52;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * @Description: TODO SpringBoot 启动测试类
+ * @Author: lilei58
+ * @Date: Created in 2021/5/6 10:35 上午
+ */
 @SpringBootApplication
 public class Hibernate52Application {
 
 	public static void main(String[] args) {
+		// 执行 run() 方法
 		SpringApplication.run(Hibernate52Application.class, args);
 	}
 

@@ -237,6 +237,7 @@ public class SpringApplication {
 	 * @see #setSources(Set)
 	 */
 	public SpringApplication(Class<?>... primarySources) {
+		// 执行 this()
 		this(null, primarySources);
 	}
 
@@ -252,13 +253,28 @@ public class SpringApplication {
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySources) {
+		// 资源加载
 		this.resourceLoader = resourceLoader;
+		// primarySources 是否为空
 		Assert.notNull(primarySources, "PrimarySources must not be null");
+		// 使用 set 接收 List(去重)
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+		/**
+		 * 推断项目类型: 主要有三种类型
+		 * NONE: 非 web 项目
+		 * SERVLET: 标准 servlet web 项目（还有非 servlet 的 web 类）
+		 * REACTIVE: WEBFLUX
+		 */
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
-		this.bootstrapRegistryInitializers = new ArrayList<>(
-				getSpringFactoriesInstances(BootstrapRegistryInitializer.class));
+
+		this.bootstrapRegistryInitializers = new ArrayList<>(getSpringFactoriesInstances(BootstrapRegistryInitializer.class));
+		/**
+		 * 首先这个方法很重要
+		 * 在 SpringBoot 中首次调用 getSpringFactoriesInstances() 方法
+		 * getSpringFactoriesInstances() 这个方法可以查看注释
+		 */
 		setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+		// setListeners 往这个 List 中添加数据 List<ApplicationListener>
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
@@ -1276,6 +1292,7 @@ public class SpringApplication {
 	 * @return the running {@link ApplicationContext}
 	 */
 	public static ConfigurableApplicationContext run(Class<?> primarySource, String... args) {
+		// 进入 run() 方法
 		return run(new Class<?>[] { primarySource }, args);
 	}
 
@@ -1287,6 +1304,7 @@ public class SpringApplication {
 	 * @return the running {@link ApplicationContext}
 	 */
 	public static ConfigurableApplicationContext run(Class<?>[] primarySources, String[] args) {
+		// 进入 SpringApplication 对象构造方法
 		return new SpringApplication(primarySources).run(args);
 	}
 
