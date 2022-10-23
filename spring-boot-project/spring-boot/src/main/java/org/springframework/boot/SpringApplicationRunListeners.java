@@ -53,7 +53,9 @@ class SpringApplicationRunListeners {
 	}
 
 	void starting(ConfigurableBootstrapContext bootstrapContext, Class<?> mainApplicationClass) {
-		doWithListeners("spring.boot.application.starting", (listener) -> listener.starting(bootstrapContext),
+		doWithListeners("spring.boot.application.starting",
+				// 启动监听器
+				(listener) -> listener.starting(bootstrapContext),
 				(step) -> {
 					if (mainApplicationClass != null) {
 						step.tag("mainApplicationClass", mainApplicationClass.getName());
@@ -114,9 +116,23 @@ class SpringApplicationRunListeners {
 		doWithListeners(stepName, listenerAction, null);
 	}
 
-	private void doWithListeners(String stepName, Consumer<SpringApplicationRunListener> listenerAction,
-			Consumer<StartupStep> stepAction) {
+	/**
+	 * 执行监听器
+	 *
+	 * @param stepName			stepName = "spring.boot.application.starting"
+	 * @param listenerAction
+	 * @param stepAction
+	 */
+	private void doWithListeners(String stepName, Consumer<SpringApplicationRunListener> listenerAction, Consumer<StartupStep> stepAction) {
 		StartupStep step = this.applicationStartup.start(stepName);
+		/**
+		 * 就是将 SpringApplicationRunListener 中的 listener 循环的调用 starting 方法,
+		 * 这里的 listener 就只有一个对象 EventPublishingRunListener,所以就会调用该对象的 starting 方法
+		 *
+		 * ***********************
+		 * ***** 这种写法没看懂 *****
+		 * ***********************
+		 */
 		this.listeners.forEach(listenerAction);
 		if (stepAction != null) {
 			stepAction.accept(step);

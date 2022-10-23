@@ -17,6 +17,7 @@
 package org.springframework.boot.context.event;
 
 import java.time.Duration;
+import java.util.EventObject;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -64,6 +65,7 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 		this.args = args;
 		this.initialMulticaster = new SimpleApplicationEventMulticaster();
 		for (ApplicationListener<?> listener : application.getListeners()) {
+			// 初始化广播器
 			this.initialMulticaster.addApplicationListener(listener);
 		}
 	}
@@ -75,21 +77,59 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 
 	@Override
 	public void starting(ConfigurableBootstrapContext bootstrapContext) {
-		this.initialMulticaster
-				.multicastEvent(new ApplicationStartingEvent(bootstrapContext, this.application, this.args));
+		/**
+		 * 广播器 initialMulticaster 这个类的作用就是
+		 * multicastEvent(): 将给定的应用程序事件多播到适当的侦听器,其为 Spring 的方法
+		 *
+		 * 创建 ApplicationStartingEvent 事件对象,事件对象的构建方法中,将 SpringApplication 设置 source 属性
+		 * source: 事件最初发生的对象
+		 * @see EventObject#source
+		 *
+		 * 这个类工作方式有点抽象
+		 *  1、首先他会广播一个事件
+		 *  	对应代码 for (ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+		 *  	getApplicationListeners(event, type) 干了两件事件,首先传了两个参数
+		 * 		这两个参数就是事件类型, 意思告诉所有的监听器现在有了一个 type 类型的 event, 你们感兴趣不?
+		 * 	2、告诉所有的监听器
+		 *		getApplicationListeners 告诉所有的监听器(遍历所有的监听器)
+		 * 		然后监听器会接受到这个事件,继而监听器会判断这个事件自己是否感兴趣
+		 * 		关键监听器如何知道自己是否感兴趣? Spring 做的比较复杂
+		 * 		主要有两个步骤来确定:
+		 * 			第一个步骤: 两个方法确定
+		 *  			smartListener.supportsEventType(eventType)
+		 *  			smartListener.supportsSourceType(sourceType)
+		 * 				上面两个方法可以简单理解通过传入一个事件类型返回一个 boolean
+		 * 				任意一个返回 false 表示这个监听器对 eventType 的事件不敢兴趣
+		 * 				如果感兴趣会被 add 到一个 List 当中,再后续的代码中依次执行方法调用
+		 * 			第二个步骤: 在监听器回调的时候,还是可以进行事件类型判断的
+		 *				如果事件类型不感兴趣上面都不执行就可以
+		 * 	3、获得所有对这个事件感兴趣的监听器,遍历执行其 onApplicationEvent() 方法,处理监听器对应事件
+		 *		这里的代码传入了一个 ApplicationstartingEvent 的事件过去
+		 * 		那么在 SpringBoot 当中定义的11个监听器哪些监听器对这个事件感兴趣呢?
+		 * 		或者换句话说哪些监听器订阅了这个事件呢?
+		 *  4、initialMulticaster 可以看到是 simpleApplicationEventMulticaster 类型的对象
+		 *		主要两个方法,一个是广播事件,一个执行 listener的onApplicationEvent() 方法
+		 *
+		 * 整个判断及执行都在下边的方法执行
+		 * @see SimpleApplicationEventMulticaster#multicastEvent(org.springframework.context.ApplicationEvent)
+		 */
+		this.initialMulticaster.multicastEvent(
+				new ApplicationStartingEvent(bootstrapContext, this.application, this.args)
+		);
 	}
 
 	@Override
-	public void environmentPrepared(ConfigurableBootstrapContext bootstrapContext,
-			ConfigurableEnvironment environment) {
+	public void environmentPrepared(ConfigurableBootstrapContext bootstrapContext, ConfigurableEnvironment environment) {
 		this.initialMulticaster.multicastEvent(
-				new ApplicationEnvironmentPreparedEvent(bootstrapContext, this.application, this.args, environment));
+				new ApplicationEnvironmentPreparedEvent(bootstrapContext, this.application, this.args, environment)
+		);
 	}
 
 	@Override
 	public void contextPrepared(ConfigurableApplicationContext context) {
-		this.initialMulticaster
-				.multicastEvent(new ApplicationContextInitializedEvent(this.application, this.args, context));
+		this.initialMulticaster.multicastEvent(
+				new ApplicationContextInitializedEvent(this.application, this.args, context)
+		);
 	}
 
 	@Override
@@ -100,7 +140,9 @@ public class EventPublishingRunListener implements SpringApplicationRunListener,
 			}
 			context.addApplicationListener(listener);
 		}
-		this.initialMulticaster.multicastEvent(new ApplicationPreparedEvent(this.application, this.args, context));
+		this.initialMulticaster.multicastEvent(
+				new ApplicationPreparedEvent(this.application, this.args, context)
+		);
 	}
 
 	@Override

@@ -55,8 +55,7 @@ class ConfigDataLoaders {
 	 */
 	ConfigDataLoaders(DeferredLogFactory logFactory, ConfigurableBootstrapContext bootstrapContext,
 			ClassLoader classLoader) {
-		this(logFactory, bootstrapContext, classLoader,
-				SpringFactoriesLoader.loadFactoryNames(ConfigDataLoader.class, classLoader));
+		this(logFactory, bootstrapContext, classLoader, SpringFactoriesLoader.loadFactoryNames(ConfigDataLoader.class, classLoader));
 	}
 
 	/**
